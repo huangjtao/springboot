@@ -1,0 +1,66 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.mtl.system.mapper.MenuMapper">
+
+    <!-- 通用查询映射结果 -->
+    <resultMap id="menuResultMap" type="com.mtl.system.domain.Menu">
+        <id column="id" property="id"/>
+        <result column="pid" property="pid"/>
+        <result column="title" property="title"/>
+        <result column="url" property="url"/>
+        <result column="sorder" property="sorder"/>
+        <result column="menutype" property="menutype"/>
+        <result column="datatype" property="datatype"/>
+        <result column="selected" property="selected"/>
+        <result column="deleteflag" property="deleteflag"/>
+        <result column="canexp" property="canexp"/>
+        <result column="icon" property="icon"/>
+        <result column="icon_hover" property="iconHover"/>
+        <result column="is_display" property="isDisplay"/>
+    </resultMap>
+
+    <resultMap id="treeNodeResultMap" type="com.mtl.system.domain.vo.MenuVO">
+        <id column="id" property="id"/>
+        <result column="parent_id" property="parentId"/>
+        <result column="name" property="name"/>
+        <result column="path" property="path"/>
+        <result column="icon" property="icon"/>
+        <result column="type" property="type"/>
+        <result column="is_auth" property="isAuth"/>
+    </resultMap>
+
+    <select id="authMenu" resultMap="treeNodeResultMap" parameterType="java.lang.String">
+        SELECT id,pid as parent_id,title as name,url as path,icon,menutype as type
+         from mtl_menu WHERE deleteflag=0
+        <if test="ids!=null and ids!=''">
+            and
+            find_in_set(id,#{ids})
+        </if>
+    </select>
+
+    <select id="authMenuList" resultMap="menuResultMap" parameterType="java.lang.String">
+        SELECT id,pid as parent_id,title as name,url as path,icon,menutype as type
+        from mtl_menu WHERE deleteflag=0
+        <if test="ids!=null and ids!=''">
+            and
+            find_in_set(id,#{ids})
+        </if>
+    </select>
+
+    <select id="authMenuIds" resultType="java.lang.String" parameterType="int">
+        SELECT objvalue from mtl_auth_action WHERE actid in(
+          SELECT role_id from mtl_adminuser WHERE userid=#{id})
+    </select>
+
+    <select id="findByParentId" resultType="int" parameterType="int">
+        select count(id) from mtl_menu where pid=#{id}
+    </select>
+
+
+    <select id="MenuTreeByRole" resultMap="treeNodeResultMap" parameterType="java.lang.Integer">
+        SELECT id,pid as parent_id,title as name,url as path,icon,menutype as type,
+ (SELECT count(*)  FROM mtl_role_auth ra WHERE ra.role_id=#{roleId} and ra.menu_id=m.id) as is_auth
+  from mtl_menu m
+    </select>
+
+</mapper>
